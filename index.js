@@ -54,8 +54,9 @@ ourAPP.get("/book/c/:category", (req, res) => {
 // Method   - GET
 // Params   - author
 // Body     - none
-ourAPP.get("/book/a/:authors", (req, res) => {
-    const getBook = Database.Book.filter((book) => book.authors.includes(parseInt(req.params.authors)) );
+ourAPP.get("/book/a/:author", (req, res) => {
+    const getBook = Database.Book.filter((book) => book.authors.includes(parseInt(req
+        .params.authors)) );
     return res.json({ book: getBook });
 });
 
@@ -65,7 +66,7 @@ ourAPP.get("/book/a/:authors", (req, res) => {
 // Method   - GET
 // Params   - none
 // Body     - none
-ourAPP.get("/authors", (req, res) => {
+ourAPP.get("/author", (req, res) => {
     return res.json({ author: Database.Author });
 });
 
@@ -88,7 +89,7 @@ ourAPP.post("/book/new", (req, res) => {
 // Access   - Public
 // Method   - POST
 // Params   - none
-ourAPP.post("/authors/new", (req, res)=> {
+ourAPP.post("/author/new", (req, res)=> {
    
     const {newAuthor} = req.body;
    
@@ -207,5 +208,59 @@ ourAPP.put("/author/updateName/:id", (req, res) =>{
     });
     return res.json(Database.Author);
 });
+
+// Route    - /book/delete/:isbn
+// Des      - to delete a book
+// Access   - Public
+// Method   - DELETE
+// Params   - ISBN
+ourAPP.delete("/book/delete/:isbn", (req, res) => {
+    const { isbn } = req.params;
+
+    const filterBooks = Database.Book.filter((book) => book.ISBN !== isbn );
+
+    Database.Book = filterBooks;
+
+    return res.json(Database.Book);
+});
+// Route    - /book/delete/author/:isbn/:id
+// Des      - to delete a book
+// Access   - Public
+// Method   - DELETE
+// Params   - ISBN , id
+ourAPP.delete("/book/delete/author/:isbn/:id", (req, res) =>{
+    const { isbn, id } = req.params;
+    
+    Database.Book.forEach((book) =>{
+        if(book.ISBN === isbn ){
+            if(!book.authors.includes(parseInt(id))){
+                return;
+            }
+
+            book.authors = book.authors.filter((databaseId)=> databaseId !== parseInt(id) );
+
+            return book;
+        }
+
+        return book;
+    });
+
+    Database.Author.forEach((author) =>{
+        if(author.id === parseInt(id) ){
+            if(!author.books.includes(isbn)){
+                return;
+            }
+
+            author.books = author.books.filter((book)=> book !== isbn );
+
+            return author;
+        }
+
+        return author;
+    });
+
+    return res.json({ book: Database.Book, author: Database.Author });
+});
+
 
 ourAPP.listen(4000, () => console.log("Server is running") );
