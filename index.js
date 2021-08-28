@@ -1,4 +1,6 @@
+require('dotenv').config();
 const express = require("express");
+const mongoose = require('mongoose');
 
 //database
 
@@ -6,13 +8,23 @@ const Database = require("./database");
 
 //initialization
 
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("connection established!!"))
+.catch((err) => {
+    console.log(err);
+ });
+
 const ourAPP = express();
 
 ourAPP.use(express.json());
 
 
+
+
 ourAPP.get("/", (req, res) => {
-   res.json({ message: "Request Served!!!!!" });
+    res.json({
+        message: "Request Served!!!!!"
+    });
 });
 
 // Route    - /book
@@ -22,7 +34,9 @@ ourAPP.get("/", (req, res) => {
 // Params   - none
 // Body     - none
 ourAPP.get("/book", (req, res) => {
-    return res.json({ books: Database.Book });
+    return res.json({
+        books: Database.Book
+    });
 });
 
 // Route    - /book/:bookID
@@ -31,9 +45,11 @@ ourAPP.get("/book", (req, res) => {
 // Method   - GET
 // Params   - bookID
 // Body     - none
-ourAPP.get("/book/:bookID", (req, res) => { 
-    const getBook = Database.Book.filter((book) => book.ISBN === req.params.bookID );
-    return res.json({ book: getBook });
+ourAPP.get("/book/:bookID", (req, res) => {
+    const getBook = Database.Book.filter((book) => book.ISBN === req.params.bookID);
+    return res.json({
+        book: getBook
+    });
 });
 
 // Route    - /book/c/:category
@@ -44,8 +60,10 @@ ourAPP.get("/book/:bookID", (req, res) => {
 // Body     - none
 
 ourAPP.get("/book/c/:category", (req, res) => {
-    const getBook = Database.Book.filter((book) => book.category.includes(req.params.category)); 
-    return res.json({ book: getBook });
+    const getBook = Database.Book.filter((book) => book.category.includes(req.params.category));
+    return res.json({
+        book: getBook
+    });
 });
 
 // Route    - /book/a/:authors 
@@ -56,8 +74,10 @@ ourAPP.get("/book/c/:category", (req, res) => {
 // Body     - none
 ourAPP.get("/book/a/:author", (req, res) => {
     const getBook = Database.Book.filter((book) => book.authors.includes(parseInt(req
-        .params.authors)) );
-    return res.json({ book: getBook });
+        .params.authors)));
+    return res.json({
+        book: getBook
+    });
 });
 
 // Route    - /author
@@ -67,7 +87,9 @@ ourAPP.get("/book/a/:author", (req, res) => {
 // Params   - none
 // Body     - none
 ourAPP.get("/author", (req, res) => {
-    return res.json({ author: Database.Author });
+    return res.json({
+        author: Database.Author
+    });
 });
 
 // Route    - /author/:id
@@ -76,9 +98,11 @@ ourAPP.get("/author", (req, res) => {
 // Method   - GET
 // Params   - ID
 // Body     - none
-ourAPP.get("/author/:id", (req, res) =>{
-const getBook = Database.Author.filter((author) => author.id === parseInt(req.params.id));
-return res.json({author: getBook});
+ourAPP.get("/author/:id", (req, res) => {
+    const getBook = Database.Author.filter((author) => author.id === parseInt(req.params.id));
+    return res.json({
+        author: getBook
+    });
 });
 // Route    - /book/new
 // Des      - to add new book
@@ -87,7 +111,9 @@ return res.json({author: getBook});
 // Params   - none
 ourAPP.post("/book/new", (req, res) => {
 
-    const {newBook} = req.body;
+    const {
+        newBook
+    } = req.body;
 
     Database.Book.push(newBook);
 
@@ -99,10 +125,12 @@ ourAPP.post("/book/new", (req, res) => {
 // Access   - Public
 // Method   - POST
 // Params   - none
-ourAPP.post("/author/new", (req, res)=> {
-   
-    const {newAuthor} = req.body;
-   
+ourAPP.post("/author/new", (req, res) => {
+
+    const {
+        newAuthor
+    } = req.body;
+
     Database.Author.push(newAuthor);
 
     return res.json(Database.Author);
@@ -114,14 +142,18 @@ ourAPP.post("/author/new", (req, res)=> {
 // Access   - Public
 // Method   - POST
 // Params   - none
-ourAPP.post("/publication/new", (req, res)=>{
+ourAPP.post("/publication/new", (req, res) => {
 
-    const {newPublication} = req.body;
-    
+    const {
+        newPublication
+    } = req.body;
+
     console.log(newPublication);
 
-    return res.json({message:"New Publication is Added Successfully"});
-    
+    return res.json({
+        message: "New Publication is Added Successfully"
+    });
+
 });
 
 // Route    - /book/update/:isbn
@@ -129,13 +161,20 @@ ourAPP.post("/publication/new", (req, res)=>{
 // Access   - Public
 // Method   - PUT
 // Params   - ISBN
-ourAPP.put("/book/update/:isbn", (req, res)=>{
-    const {updateData} = req.body;
-    const {isbn} = req.params;
+ourAPP.put("/book/update/:isbn", (req, res) => {
+    const {
+        updateData
+    } = req.body;
+    const {
+        isbn
+    } = req.params;
 
-    const book = Database.Book.map((book)=> {
-        if(book.ISBN === isbn){
-            return {...book, ...updateData};
+    const book = Database.Book.map((book) => {
+        if (book.ISBN === isbn) {
+            return {
+                ...book,
+                ...updateData
+            };
         }
 
         return book;
@@ -149,16 +188,20 @@ ourAPP.put("/book/update/:isbn", (req, res)=>{
 // Access   - Public
 // Method   - PUT
 // Params   - ISBN
-ourAPP.put("/book/updateAuthor/:isbn", (req, res)=>{
-    const {newAuthor} = req.body;
-    const {isbn} = req.params;
+ourAPP.put("/book/updateAuthor/:isbn", (req, res) => {
+    const {
+        newAuthor
+    } = req.body;
+    const {
+        isbn
+    } = req.params;
 
-    Database.Book.forEach((book)=> {
-        if(book.ISBN === isbn){
-            if(!book.authors.includes(newAuthor)){
-            book.authors.push(newAuthor);
-            return book;
-        }
+    Database.Book.forEach((book) => {
+        if (book.ISBN === isbn) {
+            if (!book.authors.includes(newAuthor)) {
+                book.authors.push(newAuthor);
+                return book;
+            }
 
             return book;
         }
@@ -166,9 +209,9 @@ ourAPP.put("/book/updateAuthor/:isbn", (req, res)=>{
         return book;
     });
 
-     Database.Author.forEach((author) =>{
-        if(author.id === newAuthor ) {
-            if(!author.books.includes(isbn)){
+    Database.Author.forEach((author) => {
+        if (author.id === newAuthor) {
+            if (!author.books.includes(isbn)) {
                 author.books.push(isbn);
                 return author;
             }
@@ -178,7 +221,10 @@ ourAPP.put("/book/updateAuthor/:isbn", (req, res)=>{
         return author;
     });
 
-    return res.json({book : Database.Book, author : Database.Author});
+    return res.json({
+        book: Database.Book,
+        author: Database.Author
+    });
 });
 
 // Route    - /book/updateTitle/:isbn
@@ -186,12 +232,16 @@ ourAPP.put("/book/updateAuthor/:isbn", (req, res)=>{
 // Access   - Public
 // Method   - PUT
 // Params   - ISBN
-ourAPP.put("/book/updateTitle/:isbn", (req, res) =>{
-    const { updateBook } = req.body;
-    const { isbn } = req.params;
+ourAPP.put("/book/updateTitle/:isbn", (req, res) => {
+    const {
+        updateBook
+    } = req.body;
+    const {
+        isbn
+    } = req.params;
 
-    Database.Book.forEach((book) =>{
-        if(book.ISBN === isbn) {
+    Database.Book.forEach((book) => {
+        if (book.ISBN === isbn) {
             book.title = updateBook.title;
             return book;
         }
@@ -205,12 +255,16 @@ ourAPP.put("/book/updateTitle/:isbn", (req, res) =>{
 // Access   - Public
 // Method   - PUT
 // Params   - ID
-ourAPP.put("/author/updateName/:id", (req, res) =>{
-    const { updateName } = req.body;
-    const { id } = req.params;
+ourAPP.put("/author/updateName/:id", (req, res) => {
+    const {
+        updateName
+    } = req.body;
+    const {
+        id
+    } = req.params;
 
-    Database.Author.forEach((author) =>{
-        if(author.id === parseInt(id)) {
+    Database.Author.forEach((author) => {
+        if (author.id === parseInt(id)) {
             author.name = updateName.name;
             return author;
         }
@@ -225,9 +279,11 @@ ourAPP.put("/author/updateName/:id", (req, res) =>{
 // Method   - DELETE
 // Params   - ISBN
 ourAPP.delete("/book/delete/:isbn", (req, res) => {
-    const { isbn } = req.params;
+    const {
+        isbn
+    } = req.params;
 
-    const filterBooks = Database.Book.filter((book) => book.ISBN !== isbn );
+    const filterBooks = Database.Book.filter((book) => book.ISBN !== isbn);
 
     Database.Book = filterBooks;
 
@@ -239,16 +295,19 @@ ourAPP.delete("/book/delete/:isbn", (req, res) => {
 // Access   - Public
 // Method   - DELETE
 // Params   - ISBN , id
-ourAPP.delete("/book/delete/author/:isbn/:id", (req, res) =>{
-    const { isbn, id } = req.params;
-    
-    Database.Book.forEach((book) =>{
-        if(book.ISBN === isbn ){
-            if(!book.authors.includes(parseInt(id))){
+ourAPP.delete("/book/delete/author/:isbn/:id", (req, res) => {
+    const {
+        isbn,
+        id
+    } = req.params;
+
+    Database.Book.forEach((book) => {
+        if (book.ISBN === isbn) {
+            if (!book.authors.includes(parseInt(id))) {
                 return;
             }
 
-            book.authors = book.authors.filter((databaseId)=> databaseId !== parseInt(id) );
+            book.authors = book.authors.filter((databaseId) => databaseId !== parseInt(id));
 
             return book;
         }
@@ -256,13 +315,13 @@ ourAPP.delete("/book/delete/author/:isbn/:id", (req, res) =>{
         return book;
     });
 
-    Database.Author.forEach((author) =>{
-        if(author.id === parseInt(id) ){
-            if(!author.books.includes(isbn)){
+    Database.Author.forEach((author) => {
+        if (author.id === parseInt(id)) {
+            if (!author.books.includes(isbn)) {
                 return;
             }
 
-            author.books = author.books.filter((book)=> book !== isbn );
+            author.books = author.books.filter((book) => book !== isbn);
 
             return author;
         }
@@ -270,7 +329,10 @@ ourAPP.delete("/book/delete/author/:isbn/:id", (req, res) =>{
         return author;
     });
 
-    return res.json({ book: Database.Book, author: Database.Author });
+    return res.json({
+        book: Database.Book,
+        author: Database.Author
+    });
 });
 
 // Route    - /author/delete/:id
@@ -278,10 +340,12 @@ ourAPP.delete("/book/delete/author/:isbn/:id", (req, res) =>{
 // Access   - Public
 // Method   - DELETE
 // Params   - id
-ourAPP.delete("/author/delete/:id", (req, res) =>{
-    const {id} = req.params;
+ourAPP.delete("/author/delete/:id", (req, res) => {
+    const {
+        id
+    } = req.params;
 
-    const filteredAuthor = Database.Author.filter((author) => author.id !== parseInt(id) );
+    const filteredAuthor = Database.Author.filter((author) => author.id !== parseInt(id));
 
     Database.Author = filteredAuthor;
 
@@ -293,10 +357,12 @@ ourAPP.delete("/author/delete/:id", (req, res) =>{
 // Access   - Public
 // Method   - DELETE
 // Params   - id
-ourAPP.delete("/author/publication/:id", (req, res) =>{
-    const {id} = req.params;
+ourAPP.delete("/author/publication/:id", (req, res) => {
+    const {
+        id
+    } = req.params;
 
-    const filteredpub = Database.Publication.filter((pub) => pub.id !== parseInt(id) );
+    const filteredpub = Database.Publication.filter((pub) => pub.id !== parseInt(id));
 
     Database.Publication = filteredpub;
 
@@ -309,7 +375,10 @@ ourAPP.delete("/author/publication/:id", (req, res) =>{
 // Method   - DELETE
 // Params   - ISBN , id
 ourAPP.delete("/publication/delete/book/:isbn/:id", (req, res) => {
-    const { isbn, id } = req.params;
+    const {
+        isbn,
+        id
+    } = req.params;
 
     Database.Book.forEach((book) => {
         if (book.ISBN === isbn) {
@@ -330,7 +399,10 @@ ourAPP.delete("/publication/delete/book/:isbn/:id", (req, res) => {
         return publication;
     });
 
-    return res.json({ book: Database.Book, publication: Database.Publication });
+    return res.json({
+        book: Database.Book,
+        publication: Database.Publication
+    });
 });
 
 
@@ -341,4 +413,4 @@ ourAPP.delete("/publication/delete/book/:isbn/:id", (req, res) => {
 
 
 
-ourAPP.listen(4000, () => console.log("Server is running") );
+ourAPP.listen(4000, () => console.log("Server is running"));
