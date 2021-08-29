@@ -2,6 +2,12 @@ require('dotenv').config();
 const express = require("express");
 const mongoose = require('mongoose');
 
+// Importing Different Schema
+
+const BookModel = require("./schema/book");
+const AuthorModel = require("./schema/author");
+const PublicationModel = require("./schema/publication");
+
 //database
 
 const Database = require("./database");
@@ -9,10 +15,10 @@ const Database = require("./database");
 //initialization
 
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("connection established!!"))
-.catch((err) => {
-    console.log(err);
- });
+    .then(() => console.log("connection established!!"))
+    .catch((err) => {
+        console.log(err);
+    });
 
 const ourAPP = express();
 
@@ -33,10 +39,9 @@ ourAPP.get("/", (req, res) => {
 // Method   - GET
 // Params   - none
 // Body     - none
-ourAPP.get("/book", (req, res) => {
-    return res.json({
-        books: Database.Book
-    });
+ourAPP.get("/book", async (req, res) => {
+    const getAllBooks = await BookModel.find();
+    return res.json(getAllBooks);
 });
 
 // Route    - /book/:bookID
@@ -45,11 +50,16 @@ ourAPP.get("/book", (req, res) => {
 // Method   - GET
 // Params   - bookID
 // Body     - none
-ourAPP.get("/book/:bookID", (req, res) => {
-    const getBook = Database.Book.filter((book) => book.ISBN === req.params.bookID);
-    return res.json({
-        book: getBook
+ourAPP.get("/book/:bookID", async (req, res) => {
+    const getSpecificBook = await BookModel.findOne({
+        ISBN: req.params.bookID
     });
+    if (!getSpecificBook) {
+        return res.json({
+            error: `No book found for the ISBN of ${req.params.bookID}`,
+        });
+    }
+    return res.json(getSpecificBook);
 });
 
 // Route    - /book/c/:category
@@ -109,15 +119,17 @@ ourAPP.get("/author/:id", (req, res) => {
 // Access   - Public
 // Method   - POST
 // Params   - none
-ourAPP.post("/book/new", (req, res) => {
+ourAPP.post("/book/new", async(req, res) => {
 
-    const {
-        newBook
-    } = req.body;
+    try{
+        const { newBook } = req.body;
+        await BookModel.create(newBook);
+        return res.json({message: 'Book added to the database'});
 
-    Database.Book.push(newBook);
+    } catch(error){
+        return res.json({error:error.message});
 
-    return res.json(Database.Book);
+    }
 });
 
 // Route    - /authors/new
