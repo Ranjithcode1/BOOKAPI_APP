@@ -69,10 +69,19 @@ ourAPP.get("/book/:bookID", async (req, res) => {
 // Params   - category
 // Body     - none
 
-ourAPP.get("/book/c/:category", (req, res) => {
-    const getBook = Database.Book.filter((book) => book.category.includes(req.params.category));
+ourAPP.get("/book/c/:category", async (req, res) => {
+    const getSpecificBooks = await BookModel.findOne({
+        category: req.params.category,
+    });
+
+    if (!getSpecificBooks) {
+        return res.json({
+            error: `No book found for the catogory of ${req.params.category}`
+        });
+    }
+
     return res.json({
-        book: getBook
+        books: getSpecificBooks
     });
 });
 
@@ -96,10 +105,10 @@ ourAPP.get("/book/a/:author", (req, res) => {
 // Method   - GET
 // Params   - none
 // Body     - none
-ourAPP.get("/author", (req, res) => {
-    return res.json({
-        author: Database.Author
-    });
+ourAPP.get("/author", async (req, res) => {
+    const getAllAuthors = await AuthorModel.find();
+    return res.json(getAllAuthors);
+
 });
 
 // Route    - /author/:id
@@ -119,15 +128,21 @@ ourAPP.get("/author/:id", (req, res) => {
 // Access   - Public
 // Method   - POST
 // Params   - none
-ourAPP.post("/book/new", async(req, res) => {
+ourAPP.post("/book/new", async (req, res) => {
 
-    try{
-        const { newBook } = req.body;
+    try {
+        const {
+            newBook
+        } = req.body;
         await BookModel.create(newBook);
-        return res.json({message: 'Book added to the database'});
+        return res.json({
+            message: 'Book added to the database'
+        });
 
-    } catch(error){
-        return res.json({error:error.message});
+    } catch (error) {
+        return res.json({
+            error: error.message
+        });
 
     }
 });
@@ -143,9 +158,11 @@ ourAPP.post("/author/new", (req, res) => {
         newAuthor
     } = req.body;
 
-    Database.Author.push(newAuthor);
+    AuthorModel.create(newAuthor);
 
-    return res.json(Database.Author);
+    return res.json({
+        message: 'Author upated successfully'
+    });
 
 });
 
@@ -200,7 +217,7 @@ ourAPP.put("/book/update/:isbn", (req, res) => {
 // Access   - Public
 // Method   - PUT
 // Params   - ISBN
-ourAPP.put("/book/updateAuthor/:isbn", (req, res) => {
+ourAPP.put("/book/updateAuthor/:isbn", async(req, res) => {
     const {
         newAuthor
     } = req.body;
@@ -208,34 +225,38 @@ ourAPP.put("/book/updateAuthor/:isbn", (req, res) => {
         isbn
     } = req.params;
 
-    Database.Book.forEach((book) => {
-        if (book.ISBN === isbn) {
-            if (!book.authors.includes(newAuthor)) {
-                book.authors.push(newAuthor);
-                return book;
-            }
+        const updateBook = await BookModel.findOneAndUpdate(
+            {
+                ISBN: isbn,
+            },
+            {
+                $addToSet: {
+                    authors: newAuthor,
+                }
+            },
+            {
+                new: true,
+            },
+        );
 
-            return book;
-        }
-
-        return book;
-    });
-
-    Database.Author.forEach((author) => {
-        if (author.id === newAuthor) {
-            if (!author.books.includes(isbn)) {
-                author.books.push(isbn);
-                return author;
-            }
-            return author;
-        }
-
-        return author;
-    });
+        const updateAuthor = await AuthorModel.findOneAndUpdate(
+            {
+                id : newAuthor,
+            },
+            {
+                $addToSet: {
+                    books: isbn,
+                }
+            },
+            {
+                new: true,
+            },
+        );
 
     return res.json({
-        book: Database.Book,
-        author: Database.Author
+        book: updateBook,
+        authors: updateAuthor,
+        message: 'New author was added into database',
     });
 });
 
@@ -244,22 +265,22 @@ ourAPP.put("/book/updateAuthor/:isbn", (req, res) => {
 // Access   - Public
 // Method   - PUT
 // Params   - ISBN
-ourAPP.put("/book/updateTitle/:isbn", (req, res) => {
-    const {
-        updateBook
-    } = req.body;
-    const {
-        isbn
-    } = req.params;
+ourAPP.put("/book/updateTitle/:isbn", async (req, res) => {
+    const { titleName } = req.body.title;
+    const updateBook = await BookModel.findOneAndUpdate(
+        {
+            ISBN: req.params.isbn,
+        },
+        {
+            title: titleName,
+        },
+        {
+            new: true,
+        },
 
-    Database.Book.forEach((book) => {
-        if (book.ISBN === isbn) {
-            book.title = updateBook.title;
-            return book;
-        }
-        return book;
-    });
-    return res.json(Database.Book);
+    );
+
+    return res.json({book: updateBook});
 });
 
 // Route    - /author/updateName/:id
